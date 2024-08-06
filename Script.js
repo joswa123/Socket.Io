@@ -11,19 +11,49 @@ const name = prompt('What is your name?')
 const timerElement = document.getElementById('timer');
 const startButton = document.getElementById('startButton');
 const pauseButton = document.getElementById('pauseButton');
-
+let memberId=''
+let members={}
+let firstDealer;
+let allowMesssage=false;
 appendMessage('You joined')
 
 socket.emit('new-user', name)
 //listner for each chats
 socket.on('chat-message', data => {
-  appendMessage(`${data.name}: ${data.message}`)
+  console.log(data.timerElement,'hiii');
+  appendMessage(`${data.name} has remaingTime(${data.remaingTime}) : ${data.message}`)
   startTimer()
+  allowMesssage=true;
 })
 //details of other connected users
 socket.on('user-connected', name => {
-userDetails(`${name}`)
+  memberId=name.id;
+members=name.users;
+const keys = Object.keys(members);
+
+keys.forEach(key => {
+
+  const name = members[key];
+  if(members[key].dealer){
+    firstDealer=true
+    console.log(firstDealer);
+    
+  }
+  userDetails(name)
+
+
+});
+
+
+console.log(memberId,members);
+
+
   updateTimerDisplay();
+})
+socket.on('dealer', data => {
+  firstDealer=data.dealer;
+  console.log('firstDEaler');
+  
 })
 //notifuing when they are typing in input box
 socket.on('others-typing', data => {
@@ -36,12 +66,15 @@ socket.on('user-disconnected', name => {
 //function to send mewsage to server
 messageForm.addEventListener('submit', e => {
   e.preventDefault()
+  if(firstDealer || allowMesssage){
   const message = messageInput.value;
   appendMessage(`You: ${message}`)
-  socket.emit('send-chat-message', message)
+  let remaingTime=timerElement.textContent;
+  socket.emit('send-chat-message', message,remaingTime)
   messageInput.value = ''
   pauseTimer();
-
+  allowMesssage=false
+  }
 })
 //function to display mmesage in UI
 function appendMessage(message) {
@@ -52,7 +85,7 @@ function appendMessage(message) {
 }
 //user name handling
 function userDetails(details){
-  userAction.append(details)
+  userAction.append(details+",")
 
 }
 
@@ -64,6 +97,8 @@ function updateTimerDisplay() {
     const minutes = Math.floor(totalTime / 60);
     const seconds = totalTime % 60;
     timerElement.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+
+    
 }
 
 // Function to start or resume the timer

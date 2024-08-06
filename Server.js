@@ -31,12 +31,23 @@ io.on('connection', (socket) => {
   // Handle new user event
   socket.on('new-user', (name) => {
     users[socket.id] = name;
-    socket.broadcast.emit('user-connected', name);
+    let id=socket.id;
+    const numberOfUsers = Object.keys(users).length;
+    if(numberOfUsers>1){ 
+    io.emit('user-connected',{ name: users[socket.id] ,id:id,users:users });
+    }
+    else{
+      io.emit('dealer',{dealer:true})
+      console.log('dealer');
+    }
+    
   });
 
   // Handle chat message event
-  socket.on('send-chat-message', (message) => {
-    socket.broadcast.emit('chat-message', { message: message, name: users[socket.id] });
+  socket.on('send-chat-message', (message,remaingTime) => {
+    console.log(remaingTime,'ghere');
+    
+    socket.broadcast.emit('chat-message', { message: message, name: users[socket.id],remaingTime:remaingTime });
   });
 
   // Handle user typing event
