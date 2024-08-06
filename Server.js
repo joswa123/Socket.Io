@@ -34,7 +34,9 @@ io.on('connection', (socket) => {
     let id=socket.id;
     const numberOfUsers = Object.keys(users).length;
     if(numberOfUsers>1){ 
-    io.emit('user-connected',{ name: users[socket.id] ,id:id,users:users });
+    //send response to everyone
+      io.emit('user-connected',{ name: users[socket.id] ,id:id,users:users });
+
     }
     else{
       io.emit('dealer',{dealer:true})
@@ -46,7 +48,7 @@ io.on('connection', (socket) => {
   // Handle chat message event
   socket.on('send-chat-message', (message,remaingTime) => {
     console.log(remaingTime,'ghere');
-    
+    //sends response other than who sends the request
     socket.broadcast.emit('chat-message', { message: message, name: users[socket.id],remaingTime:remaingTime });
   });
 
